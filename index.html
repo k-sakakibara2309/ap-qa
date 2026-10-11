@@ -46,6 +46,13 @@
       <button type="button" class="back" data-go="home">‹ ホーム</button>
       <h2 id="chapters-title">章・節を選んで学習</h2>
     </header>
+    <div class="order-box">
+      <span class="scope-label" id="order-label-chapters">出題順</span>
+      <div class="segmented order-toggle" role="radiogroup" aria-labelledby="order-label-chapters">
+        <button type="button" role="radio" data-order="ordered">登録順</button>
+        <button type="button" role="radio" data-order="shuffle">シャッフル</button>
+      </div>
+    </div>
     <button type="button" class="btn primary block" id="start-all">全範囲から出題</button>
     <div id="chapter-list"></div>
   </section>
@@ -175,6 +182,12 @@
       <button type="button" role="radio" data-theme-value="light">ライト</button>
       <button type="button" role="radio" data-theme-value="dark">ダーク</button>
     </div>
+    <span class="label" id="order-label-settings">出題順（章・節・苦手・もう一度）</span>
+    <div class="segmented order-toggle" role="radiogroup" aria-labelledby="order-label-settings">
+      <button type="button" role="radio" data-order="ordered">登録順</button>
+      <button type="button" role="radio" data-order="shuffle">シャッフル</button>
+    </div>
+    <p class="hint">登録順：教材の節の順に、同じ節の中は登録した順に出します。「ランダム」は常にシャッフル、「未学習の問題」は常に登録順です。</p>
     <label class="label" for="set-random">ランダムの問題数</label>
     <select id="set-random">
       <option value="10">10問</option>

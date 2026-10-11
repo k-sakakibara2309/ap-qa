@@ -2,9 +2,10 @@
 (function () {
   "use strict";
 
-  const APP_VERSION = "v1";
+  const APP_VERSION = "v2";
   const STORAGE_KEYS = { questions: "ap_questions", records: "ap_records", settings: "ap_settings", logLevel: "ap_log_level" };
-  const DEFAULT_SETTINGS = { theme: "auto", randomCount: 10, scope: "all", lastSection: "", lastType: "desc", lastBackupAt: null };
+  // order: "shuffle"＝シャッフル／"ordered"＝登録順（教材の節の順、同じ節の中は登録した順）
+  const DEFAULT_SETTINGS = { theme: "auto", order: "shuffle", randomCount: 10, scope: "all", lastSection: "", lastType: "desc", lastBackupAt: null };
   // 自作問題があるのにこの日数以上書き出していなければホームで知らせる
   // 理由: データは端末の中だけにあり、ホーム画面のアイコン削除などで消えるため
   const BACKUP_WARN_DAYS = 7;
@@ -363,7 +364,15 @@
 
   // ---- 章・節 ----
 
+  /** 出題順の切り替え（章・節画面と設定画面の2か所）を今の設定に合わせる */
+  function renderOrderToggles() {
+    for (const box of document.querySelectorAll(".order-toggle")) {
+      setSegmented(box, "data-order", settings.order === "ordered" ? "ordered" : "shuffle");
+    }
+  }
+
   function renderChapters() {
+    renderOrderToggles();
     const p = pool();
     $("start-all").disabled = p.length === 0;
     const box = $("chapter-list");
@@ -413,27 +422,36 @@
     return { revealed: false, judged: null, picked: null, order: null };
   }
 
+  /** 設定の出題順に並べる。list は教材順（節の順、同じ節の中は登録順）で渡す */
+  function arrange(list) {
+    if (settings.order === "ordered") {
+      return list;
+    } else {
+      return Core.shuffle(list);
+    }
+  }
+
   function startQuiz(spec) {
     const p = pool();
     let list;
     let title;
     switch (spec.kind) {
       case "all":
-        list = Core.shuffle(p);
+        list = arrange(p);
         title = "全範囲";
         break;
       case "chapter": {
         const ch = CHAPTERS.find((c) => c.no === spec.chapter);
-        list = Core.shuffle(p.filter((q) => sectionMap.get(q.section).chapter.no === spec.chapter));
+        list = arrange(p.filter((q) => sectionMap.get(q.section).chapter.no === spec.chapter));
         title = "第" + spec.chapter + "章 " + (ch ? ch.title : "");
         break;
       }
       case "section":
-        list = Core.shuffle(p.filter((q) => q.section === spec.section));
+        list = arrange(p.filter((q) => q.section === spec.section));
         title = sectionLabel(spec.section);
         break;
       case "weak":
-        list = Core.shuffle(p.filter((q) => Core.isWeak(records[q.id])));
+        list = arrange(p.filter((q) => Core.isWeak(records[q.id])));
         title = "苦手問題";
         break;
       case "unstudied":
@@ -448,7 +466,8 @@
         break;
       }
       case "ids":
-        list = Core.shuffle(spec.ids.map((id) => byId.get(id)).filter(Boolean));
+        // もう一度・間違えた問題だけ：前回の並びに関係なく、設定の出題順で出し直す
+        list = arrange(Core.sortByTextbook(spec.ids.map((id) => byId.get(id)).filter(Boolean), sectionMap));
         title = spec.title;
         break;
       default:
@@ -1075,6 +1094,7 @@
 
   function renderSettings() {
     setSegmented($("set-theme"), "data-theme-value", settings.theme);
+    renderOrderToggles();
     $("set-random").value = String(settings.randomCount);
     const ownCount = ownVisible().length;
     const recCount = Object.keys(records).length;
@@ -1216,7 +1236,12 @@
     document.addEventListener("click", (e) => {
       const go = e.target.closest("[data-go]");
       const start = e.target.closest("[data-start]");
-      if (go) {
+      const order = e.target.closest(".order-toggle [data-order]");
+      if (order) {
+        settings.order = order.getAttribute("data-order");
+        saveSettings();
+        renderOrderToggles();
+      } else if (go) {
         const to = go.getAttribute("data-go");
         if (to === "edit") {
           openEdit(null, "home");

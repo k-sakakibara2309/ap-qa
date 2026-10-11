@@ -111,7 +111,7 @@ body {
 .field-num { color: var(--muted); }
 .field-rate { width: 3.5em; text-align: right; font-weight: 700; }
 
-.scope { margin-bottom: 12px; }
+.scope, .order-box { margin-bottom: 12px; }
 .scope-label { display: block; font-size: 0.9rem; color: var(--muted); margin-bottom: 4px; }
 
 .notice { background: var(--key-bg); color: var(--text); border: 1px solid var(--key); border-radius: 8px; padding: 8px 12px; margin: 0 0 12px; }
