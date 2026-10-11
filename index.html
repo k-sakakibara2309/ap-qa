@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1a56b8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="応用情報QA">
+  <title>応用情報 一問一答</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- ホーム -->
+  <section class="screen" id="screen-home" aria-labelledby="home-title">
+    <h1 id="home-title" class="app-title">応用情報 一問一答</h1>
+    <p class="exam-countdown" id="exam-countdown" hidden></p>
+    <div class="stats" id="home-stats"></div>
+    <div class="field-stats" id="field-stats"></div>
+    <div class="scope" id="scope-box" hidden>
+      <span class="scope-label" id="scope-label">出題範囲</span>
+      <div class="segmented" role="radiogroup" aria-labelledby="scope-label">
+        <button type="button" role="radio" data-scope="all">共通＋自作</button>
+        <button type="button" role="radio" data-scope="own">自作のみ</button>
+      </div>
+    </div>
+    <p class="notice" id="backup-notice" hidden></p>
+    <nav class="menu" aria-label="メニュー">
+      <button type="button" class="menu-item" data-go="chapters">章・節を選んで学習</button>
+      <button type="button" class="menu-item" data-start="weak">苦手問題 <span class="menu-count" id="count-weak"></span></button>
+      <button type="button" class="menu-item" data-start="unstudied">未学習の問題 <span class="menu-count" id="count-unstudied"></span></button>
+      <button type="button" class="menu-item" data-start="random">ランダム <span class="menu-count" id="count-random"></span></button>
+      <button type="button" class="menu-item" data-go="edit">問題を登録</button>
+      <button type="button" class="menu-item" data-go="list">問題一覧・編集</button>
+      <button type="button" class="menu-item" data-go="settings">設定・バックアップ</button>
+    </nav>
+  </section>
+
+  <!-- 章・節 -->
+  <section class="screen" id="screen-chapters" aria-labelledby="chapters-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" data-go="home">‹ ホーム</button>
+      <h2 id="chapters-title">章・節を選んで学習</h2>
+    </header>
+    <button type="button" class="btn primary block" id="start-all">全範囲から出題</button>
+    <div id="chapter-list"></div>
+  </section>
+
+  <!-- 出題 -->
+  <section class="screen" id="screen-quiz" aria-labelledby="quiz-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" id="quiz-quit">‹ やめる</button>
+      <h2 id="quiz-title" class="quiz-title"></h2>
+      <button type="button" class="bar-action" id="quiz-edit">編集</button>
+    </header>
+    <p class="quiz-progress" id="quiz-progress"></p>
+    <div class="quiz-meta" id="quiz-meta"></div>
+    <p class="quiz-question" id="quiz-question"></p>
+    <div id="quiz-body"></div>
+    <div class="feedback" id="quiz-feedback" hidden></div>
+    <div class="quiz-actions" id="quiz-actions"></div>
+  </section>
+
+  <!-- 結果 -->
+  <section class="screen" id="screen-result" aria-labelledby="result-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" data-go="home">‹ ホーム</button>
+      <h2 id="result-title">結果</h2>
+    </header>
+    <p class="result-score" id="result-score"></p>
+    <div class="result-buttons">
+      <button type="button" class="btn primary block" id="result-retry">もう一度</button>
+      <button type="button" class="btn block" id="result-wrong">間違えた問題だけ</button>
+      <button type="button" class="btn block" id="result-copy">学習記録用にコピー</button>
+    </div>
+    <h3 class="sub-title" id="result-wrong-title" hidden>間違えた問題</h3>
+    <ul class="q-list" id="result-wrong-list"></ul>
+  </section>
+
+  <!-- 登録・編集 -->
+  <section class="screen" id="screen-edit" aria-labelledby="edit-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" id="edit-back">‹ 戻る</button>
+      <h2 id="edit-title">問題を登録</h2>
+    </header>
+    <form id="edit-form" novalidate>
+      <label class="label" for="f-section">節</label>
+      <select id="f-section" required></select>
+
+      <span class="label" id="f-type-label">形式</span>
+      <div class="segmented" role="radiogroup" aria-labelledby="f-type-label" id="f-type">
+        <button type="button" role="radio" data-type="desc">一問一答</button>
+        <button type="button" role="radio" data-type="ox">○×</button>
+        <button type="button" role="radio" data-type="choice">選択</button>
+      </div>
+
+      <label class="label" for="f-question">問題</label>
+      <textarea id="f-question" rows="4" required></textarea>
+
+      <div id="f-answer-desc">
+        <label class="label" for="f-answer">解答</label>
+        <textarea id="f-answer" rows="2"></textarea>
+      </div>
+
+      <div id="f-answer-ox" hidden>
+        <span class="label" id="f-ox-label">解答</span>
+        <div class="segmented" role="radiogroup" aria-labelledby="f-ox-label" id="f-ox">
+          <button type="button" role="radio" data-ox="true">〇</button>
+          <button type="button" role="radio" data-ox="false">×</button>
+        </div>
+      </div>
+
+      <div id="f-answer-choice" hidden>
+        <span class="label">選択肢（正解を1つ選ぶ）</span>
+        <div id="f-choices"></div>
+        <button type="button" class="btn small" id="f-add-choice">＋ 選択肢を追加</button>
+      </div>
+
+      <label class="label" for="f-explanation">解説（任意）</label>
+      <textarea id="f-explanation" rows="3"></textarea>
+
+      <p class="error" id="edit-error" role="alert" hidden></p>
+      <button type="submit" class="btn primary block" id="edit-save">登録する</button>
+      <button type="button" class="btn danger block" id="edit-delete" hidden>この問題を削除</button>
+    </form>
+  </section>
+
+  <!-- 共通問題の表示（読み取り専用） -->
+  <section class="screen" id="screen-view" aria-labelledby="view-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" data-go="list">‹ 一覧</button>
+      <h2 id="view-title">共通問題</h2>
+    </header>
+    <div id="view-body"></div>
+  </section>
+
+  <!-- 一覧 -->
+  <section class="screen" id="screen-list" aria-labelledby="list-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" data-go="home">‹ ホーム</button>
+      <h2 id="list-title">問題一覧・編集</h2>
+    </header>
+    <div class="filters">
+      <label class="label" for="list-range">範囲</label>
+      <select id="list-range"></select>
+      <label class="label" for="list-kind">種類</label>
+      <select id="list-kind">
+        <option value="all">すべて</option>
+        <option value="weak">苦手</option>
+        <option value="own">自作</option>
+        <option value="shared">共通</option>
+      </select>
+      <label class="label" for="list-search">文字検索</label>
+      <input type="search" id="list-search" autocomplete="off">
+    </div>
+    <p class="list-count" id="list-count" aria-live="polite"></p>
+    <ul class="q-list" id="list-items"></ul>
+  </section>
+
+  <!-- 設定 -->
+  <section class="screen" id="screen-settings" aria-labelledby="settings-title" hidden>
+    <header class="bar">
+      <button type="button" class="back" data-go="home">‹ ホーム</button>
+      <h2 id="settings-title">設定・バックアップ</h2>
+    </header>
+
+    <h3 class="sub-title">表示</h3>
+    <span class="label" id="theme-label">テーマ</span>
+    <div class="segmented" role="radiogroup" aria-labelledby="theme-label" id="set-theme">
+      <button type="button" role="radio" data-theme-value="auto">端末に合わせる</button>
+      <button type="button" role="radio" data-theme-value="light">ライト</button>
+      <button type="button" role="radio" data-theme-value="dark">ダーク</button>
+    </div>
+    <label class="label" for="set-random">ランダムの問題数</label>
+    <select id="set-random">
+      <option value="10">10問</option>
+      <option value="20">20問</option>
+      <option value="50">50問</option>
+      <option value="0">全問</option>
+    </select>
+
+    <h3 class="sub-title">バックアップ</h3>
+    <p class="hint" id="backup-info"></p>
+    <button type="button" class="btn primary block" id="btn-export">書き出す（JSON）</button>
+    <label class="btn block file-btn" for="file-import">読み込む（JSON）</label>
+    <input type="file" id="file-import" accept="application/json,.json" class="visually-hidden">
+
+    <h3 class="sub-title">リセット</h3>
+    <button type="button" class="btn danger block" id="btn-reset-records">学習記録をリセット</button>
+    <button type="button" class="btn danger block" id="btn-delete-own">自作問題をすべて削除</button>
+
+    <p class="hint" id="app-version"></p>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="chapters.js"></script>
+  <script src="questions-shared.js"></script>
+  <script src="core.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
