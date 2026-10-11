@@ -2,7 +2,7 @@
 // オンライン時は最新を取りに行ってキャッシュを更新し、オフライン時やタイムアウト時はキャッシュを返す
 // アプリのファイルを変えたら CACHE_NAME の番号を上げる（tools/merge_shared.py は自動で上げる）
 // 理由: sw.js が1バイトも変わらないと新しい Service Worker が入らず、古いキャッシュが残り続けるため
-const CACHE_NAME = "ap-qa-v1";
+const CACHE_NAME = "ap-qa-v2";
 const ASSETS = [
   "./",
   "./index.html",
